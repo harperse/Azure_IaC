@@ -1,0 +1,222 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "certThumb": {
+      "type": "string"
+    },
+    "appId": {
+      "type": "string"
+    },
+    "subId": {
+      "type": "string"
+    },
+    "tenantId": {
+      "type": "string"
+    },
+    "base64": {
+      "type": "string"
+    },
+    "roleGuid": {
+      "type": "string",
+      "defaultValue": "[newGuid()]"
+    }
+  },
+  "variables": {
+    "autoAcctSku": "Basic",
+    "autoAcctName":"[concat('IAC-automation-',uniqueString('resourceGroup().id'))]",
+    "adminPass": "Fun!nTh3Cloud",
+    "contributorRoleGUID": "5fed1e0b-b0f5-46f0-9a19-86d9b5442d8c",
+    "principalID": "61c8b992-3e48-4032-9688-6244c012e3c3",
+    "vmName": "vmDscLab",
+    "vnetName": "vnetAzure",
+    "vnetPrefix":"",
+    "vnetSubnet1":"",
+    "vnetSubnet1Prefix":"",
+    "diagSku": "Standard_LRS",
+    "diagKind": "StorageV2",
+    "diagStor": "[concat('diagiac',uniquestring(parameters(parameters('roleGuid'))))]"
+  },
+  "resources": [
+    {
+      "name": "[variables('autoAcctName')]",
+      "type": "Microsoft.Automation/automationAccounts",
+      "apiVersion": "2015-10-31",
+      "properties": {
+        "sku": {
+          "name": "[variables('autoAcctSku')]"
+        }
+      },
+      "location": "[resourceGroup().location]",
+      "tags": {}
+    },
+    {
+      "name": "[concat(variables('autoAcctName'),'/LocalAdmin')]",
+      "type": "Microsoft.Automation/automationAccounts/credentials",
+      "apiVersion": "2015-10-31",
+      "dependsOn": [
+        "[resourceId('Microsoft.Automation/automationAccounts', variables('autoAcctName'))]"
+      ],
+      "properties": {
+        "userName": "azure-admin",
+        "password": "[variables('adminPass')]",
+        "description": "Local Administrator credentials"
+      }
+    },
+    {
+      "name": "[concat(variables('autoAcctName'),'/AzureRunAsCertificate')]",
+      "type": "Microsoft.Automation/automationAccounts/certificates",
+      "apiVersion": "2015-10-31",
+      "dependsOn": [
+        "[resourceId('Microsoft.Automation/automationAccounts', variables('autoAcctName'))]"
+      ],
+      "properties": {
+        "base64Value": "[parameters('base64')]",
+        "description": "Certificate for AzureRunAsConnection",
+        "thumbprint": "[parameters('certThumb')]",
+        "isExportable": false
+      }
+    },
+    {
+      "name": "[concat(variables('autoAcctName'),'/AzureRunAsConnection')]",
+      "type": "Microsoft.Automation/automationAccounts/connections",
+      "apiVersion": "2015-10-31",
+      "dependsOn": [
+        "[resourceId('Microsoft.Automation/automationAccounts', variables('autoAcctName'))]"
+      ],
+      "properties": {
+        "description": "RunAs Connection used for RunBooks to authenticate to Azure",
+        "connectionType": {
+          "name": "AzureServicePrincipal"
+        },
+        "fieldDefinitionValues": {
+          "CertificateThumbprint": "[parameters('certThumb')]",
+          "TenantID": "[parameters('tenantId')]",
+          "SubscriptionID": "[parameters('subId')]",
+          "ApplicationID": "[parameters('appId')]"
+        }
+      }
+    },
+    {
+      "name": "[variables('diagStor')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2019-04-01",
+      "location":"[resourceGroup().location]",
+      "sku":{
+        "name":"[variables('diagSku')]"
+      },
+      "kind":"[variables('diagKind')]",
+      "properties":{
+        "supportsHttpsTrafficOnly":true
+      }
+    },
+    {
+      "name": "[variables('vnetName')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('vnetPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('vnetSubnet1')]",
+            "properties": {
+              "addressPrefix": "[variables('vnetSubnet1Prefix')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(parameters('virtualMachineNamePrefix'), copyIndex(1), '-NIC1')]",
+      "apiVersion": "2016-03-30",
+      "location": "[parameters('location')]",
+      "copy": {
+        "name": "NICCopy",
+        "count": "[parameters('virtualMachineCount')]"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('virtualMachineNamePrefix'), copyIndex(1), '-PIP1'))]"
+              },
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              }
+            }
+          }
+        ],
+        "dnsSettings": {
+          "dnsServers": []
+        },
+        "enableIPForwarding": false
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('virtualMachineNamePrefix'), copyIndex(1), '-PIP1'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks/', variables('myVNETName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2019-03-01",
+      "location":"[resourceGroup().location]",
+      "name": "[variables('vmName')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts',variables('diagStor'))]"
+      ],
+      "properties":{
+        "osProfile":{
+          "adminUsername": "azure-admin",
+          "adminPassword": "[variables('adminPass')]",
+          "computerName": "[variables('vmName')]",
+          "windowsConfiguration":{
+            "enableAutomaticUpdates":false,
+            "provisionVMAgent":true,
+            "timeZone": "Eastern Standard Time"
+          }
+        },
+        "hardwareProfile":{
+          "vmSize": "Standard_D2_v3"
+        },
+        "networkProfile":{
+          "networkInterfaces":[
+            ""
+          ]
+        },
+        "storageProfile":{
+          "imageReference"
+          "osDisk"
+          "dataDisks"
+        },
+        "diagnosticsProfile":{
+          "bootDiagnostics"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "name": "[parameters('roleGuid')]",
+      "apiVersion": "2017-09-01",
+      "properties": {
+        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('contributorRoleGUID'))]",
+        "principalId": "[variables('principalID')]",
+        "scope": "[resourceGroup().Id]"
+      }
+    }
+  ],
+  "outputs": {
+    "Finished":{
+      "value": "[variables('autoAcctName')]",
+      "type": "string"
+    }
+  }
+}

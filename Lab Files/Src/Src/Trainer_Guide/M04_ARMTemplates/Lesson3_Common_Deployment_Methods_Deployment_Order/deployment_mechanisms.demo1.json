@@ -1,0 +1,73 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "department": {
+      "type": "string"
+    },
+    "netFrameworkVersion": {
+      "type": "string",
+      "allowedValues": [
+        "v2.0",
+        "v4.0"
+      ],
+      "defaultValue": "v4.0"
+    }
+  },
+  "variables": {
+    "appServicePlanName": "[concat('ASP-', parameters('department'))]",
+    "siteName": "[concat('webapp-', toLower(parameters('department')), '-', uniqueString(subscription().subscriptionId))]",
+    "storageName": "[concat(uniqueString(subscription().subscriptionId))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "name": "[variables('appServicePlanName')]",
+      "apiVersion": "2018-02-01",
+      "location": "[resourceGroup().location]",
+      "properties": {},
+      "sku": {
+        "tier": "Free",
+        "name": "F1"
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "name": "[variables('siteName')]",
+      "apiVersion": "2018-02-01",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Web/serverfarms/', variables('appServicePlanName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "siteConfig": {
+          "netFrameworkVersion": "[parameters('netFrameworkVersion')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('storageName')]",
+      "apiVersion": "2018-07-01",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "resources": [
+        {
+          "name": "default/templates",
+          "type": "blobServices/containers",
+          "apiVersion": "2018-07-01",
+          "dependsOn": [
+            "[variables('storageName')]"
+          ],
+          "properties": {
+            "publicAccess": "Blob"
+          }
+        }
+      ]
+    }
+  ]
+}

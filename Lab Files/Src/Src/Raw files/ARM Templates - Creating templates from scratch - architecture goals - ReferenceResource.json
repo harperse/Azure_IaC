@@ -1,0 +1,157 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+    },
+    "variables": {
+      "nicName": "myVMNic",
+      "addressPrefix": "10.0.0.0/16",
+      "subnetName": "Subnet",
+      "subnetPrefix": "10.0.0.0/24",
+      "vmName": "SimpleWinVM",
+      "virtualNetworkName": "MyVNET",
+      "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]"
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Network/virtualNetworks",
+        "apiVersion": "2018-11-01",
+        "name": "[variables('virtualNetworkName')]",
+        "location": "[resourceGroup().location]",
+        "properties": {
+          "addressSpace": {
+            "addressPrefixes": [
+              "[variables('addressPrefix')]"
+            ]
+          },
+          "subnets": [
+            {
+              "name": "[variables('subnetName')]",
+              "properties": {
+                "addressPrefix": "[variables('subnetPrefix')]"
+              }
+            }
+          ]
+        }
+      },
+      {
+          "name": "publicIPAddress1",
+          "type": "Microsoft.Network/publicIPAddresses",
+          "apiVersion": "2018-08-01",
+          "location": "[resourceGroup().location]",
+          "tags": {
+              "displayName": "publicIPAddress1"
+          },
+          "properties": {
+              "publicIPAllocationMethod": "Dynamic",
+              "dnsSettings": {
+                  "domainNameLabel": "dnsname1"
+              }
+          }
+      },
+      {
+        "type": "Microsoft.Compute/virtualMachines",
+        "apiVersion": "2018-10-01",
+        "name": "[variables('vmName')]",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+        ],
+        "properties": {
+          "hardwareProfile": {
+            "vmSize": "Standard_A2"
+          },
+          "osProfile": {
+            "computerName": "[variables('vmName')]",
+            "adminUsername": "privuser",
+            "adminPassword": "NotAS3curePWNotAS3curePW"
+          },
+          "storageProfile": {
+            "imageReference": {
+              "publisher": "MicrosoftWindowsServer",
+              "offer": "WindowsServer",
+              "sku": "2016-Datacenter",
+              "version": "latest"
+            },
+            "osDisk": {
+              "createOption": "FromImage"
+            }
+          },
+          "networkProfile": {
+            "networkInterfaces": [
+              {
+                "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "type": "Microsoft.Network/networkInterfaces",
+        "apiVersion": "2018-11-01",
+        "name": "[variables('nicName')]",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+          "publicIPAddress1"
+        ],
+        "properties": {
+          "ipConfigurations": [
+            {
+              "name": "ipconfig1",
+              "properties": {
+                "privateIPAllocationMethod": "Dynamic",
+                "subnet": {
+                  "id": "[variables('subnetRef')]"
+                },
+                "publicIPAddress":{
+                    "id": "[resourceid('Microsoft.Network/publicIPAddresses','publicIPAddress1')]"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+          "name": "UpdateNIC",
+          "type": "Microsoft.Resources/deployments",
+          "apiVersion": "2016-09-01",
+          "dependsOn": [
+            "[variables('vmName')]"
+          ],
+          "properties": {
+              "mode": "Incremental",
+              "parameters": {},
+              "template": {
+                "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                "contentVersion": "1.0.0.0",
+                "resources": [
+                    {
+                        "type": "Microsoft.Network/networkInterfaces",
+                        "apiVersion": "2018-11-01",
+                        "name": "[variables('nicName')]",
+                        "location": "[resourceGroup().location]",
+                        "properties": {
+                          "ipConfigurations": [
+                            {
+                              "name": "ipconfig1",
+                              "properties": {
+                                "privateIPAllocationMethod": "Static",
+                                "privateIPAddress": "[reference(variables('nicName')).ipConfigurations[0].properties.privateIPAddress]",
+                                "subnet": {
+                                  "id": "[variables('subnetRef')]"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                ],
+                "outputs": {}
+                }
+          }
+      }
+    ],
+    "outputs": {
+    }
+  }

@@ -1,0 +1,75 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"Environment": {
+			"value": "production"
+		},
+		"Cloud": {
+			"value": "commercial"
+		},
+		"VNet": {
+			"value": {
+				"Type": "Microsoft.Network/virtualNetworks",
+				"Tag": null,
+				"TagsTable": null,
+				"Name": null,
+				"EnableDDoSProtection": false,
+                "AddressSpace": {
+					"AddressPrefixes": [
+						"10.1.0.0/16",
+						"10.2.0.0/16"
+					]
+				},
+				"DhcpOptions": {
+					"DnsServers": [
+                     "4.4.4.4", "5.5.5.5"   
+                    ]
+				},
+				"Subnets": [{
+						"AddressPrefix": "10.1.0.0/24",
+						"NetworkSecurityGroup": "",
+						"RouteTable": "",
+						"ServiceEndpoints": [{
+								"Service": "Microsoft.Storage"
+							},
+							{
+								"Service": "Microsoft.Sql"
+							}
+						],
+						"Name": "default"
+					},
+					{
+						"AddressPrefix": "10.1.255.224/27",
+						"NetworkSecurityGroup": "",
+						"RouteTable": "",
+						"ServiceEndpoints": [{
+                            "Service": "Microsoft.Storage"
+                        },
+                        {
+                            "Service": "Microsoft.Sql"
+                        }
+						],
+						"Name": "GatewaySubnet"
+                    },
+                    {
+						"AddressPrefix": "10.1.250.0/23",
+						"NetworkSecurityGroup": "",
+						"RouteTable": "",
+						"ServiceEndpoints": [{
+                            "Service": "Microsoft.Storage"
+                        },
+                        {
+                            "Service": "Microsoft.Sql"
+                        }
+						],
+						"Name": "Management"
+					}
+				],
+				"VirtualNetworkPeerings": [
+
+				]
+			}
+		}
+	}
+}

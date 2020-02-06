@@ -1,0 +1,71 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "projectName": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "vnetAddressPrefixes": [
+            "10.0.0.0/16"
+        ],
+        "subnetAddressPrefixes": [
+            "10.0.0.0/24",
+            "10.0.1.0/24",
+            "10.0.2.0/24"
+        ]
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2018-08-01",
+            "name": "[concat('Vnet-', parameters('projectName'))]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": "[variables('vnetAddressPrefixes')]"
+                },
+                "copy": [
+                    {
+                        "name": "subnets",
+                        "count": "[length(variables('subnetAddressPrefixes'))]",
+                        "input": {
+                            "name": "[concat('Subnet-', parameters('projectName'), '-', copyIndex('subnets'))]",
+                            "properties": {
+                                "addressPrefix": "[variables('subnetAddressPrefixes')[copyIndex('subnets')]]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2018-08-01",
+            "name": "[concat('NIC-', parameters('projectName'), '-', copyIndex())]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/Vnet-', parameters('projectName'))]"
+            ],
+            "copy": {
+                "name": "nicLoop",
+                "count": "[length(variables('subnetAddressPrefixes'))]"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', concat('Vnet-', parameters('projectName'))), '/subnets/Subnet-', parameters('projectName'), '-', copyIndex())]"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}

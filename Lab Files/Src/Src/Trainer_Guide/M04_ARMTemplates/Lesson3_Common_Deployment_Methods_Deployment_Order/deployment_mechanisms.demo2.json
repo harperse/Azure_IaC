@@ -1,0 +1,90 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "department": {
+      "type": "string"
+    },
+    "logAnalyticsRGName": {
+      "type": "string"
+    },
+    "vnetRGName": {
+      "type": "string"
+    },
+    "vnetAddressPrefix": {
+      "type": "string"
+    },
+    "subnetPrefix": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "vnetTemplateURI": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-nic-publicip-dns-vnet/azuredeploy.json",
+    "logAnalyticsWorkspaceName": "[concat('LA-', parameters('department'))]",
+    "logAnalyticsSKU": "PerGB2018",
+    "publicIPAddressType": "Dynamic",
+    "dnsLabelPrefix": "[uniqueString(subscription().subscriptionId)]"
+  },
+  "resources": [
+    {
+      "name": "LogAnalyticsDeployment",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2018-05-01",
+      "dependsOn": [],
+      "resourceGroup": "[parameters('logAnalyticsRGName')]",
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {},
+          "variables": {},
+          "resources": [
+            {
+              "type": "Microsoft.OperationalInsights/workspaces",
+              "name": "[variables('logAnalyticsWorkspaceName')]",
+              "apiVersion": "2015-11-01-preview",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "sku": {
+                  "Name": "[variables('logAnalyticsSKU')]"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "VNetDeployment",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2018-05-01",
+      "dependsOn": [],
+      "resourceGroup": "[parameters('vnetRGName')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('vnetTemplateURI')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "dnsLabelPrefix": {
+            "value": "[variables('dnsLabelPrefix')]"
+          },
+          "vnetAddressPrefix": {
+            "value": "[parameters('vnetAddressPrefix')]"
+          },
+          "subnetPrefix": {
+            "value": "[parameters('subnetPrefix')]"
+          },
+          "publicIPAddressType": {
+            "value": "[variables('publicIPAddressType')]"
+          },
+          "location": {
+            "value": "[resourceGroup().location]"
+          }
+        }
+      }
+    }
+  ]
+}

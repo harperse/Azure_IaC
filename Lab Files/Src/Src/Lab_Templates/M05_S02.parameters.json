@@ -1,0 +1,21 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "certThumb": {
+        "value": "6F7ED88BA62D7C4E45C08B25CC15EAF4C5EA6F85"
+           },
+      "appId": {
+        "value": "8a7754db-938f-46ea-82f1-f6fce9e6b378"
+          },
+      "subId": {
+        "value": "cd5624ee-c42c-4f43-9c6d-4aea23072cf3"
+          },
+      "tenantId": {
+        "value": "f24d5e43-23c5-4ee5-a239-035e02b5ef6d"
+          },
+      "base64": {
+        "value": "MIIDGDCCAgCgAwIBAgIQcTE14qrI1I9Njqo7QW03/TANBgkqhkiG9w0BAQUFADAfMR0wGwYDVQQDDBRleGFtcGxlYXBwU2NyaXB0Q2VydDAeFw0xOTA3MTgxMzA5MThaFw0yMDA3MTgxMzI5MThaMB8xHTAbBgNVBAMMFGV4YW1wbGVhcHBTY3JpcHRDZXJ0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz8S4YzMu6BxRmAQsLPCJ+E69mxPHdqOAgVjtMdL8R4y9sB1dU5S4BdCm8KM3VZ3aFDVRV2P+J7OlRc5ydtwBgdbYZmSjmjp3UX0lu/DDxkP+iJpW4oBc2ecbIEj5M9ZICJd8WJhJh/GuNpLofZnVutA0bJG1BZ00qdFyRC+USCOQdvmFJikl9dTbU+H0NRpOQT0HaTtjzT6ABLqiJa8OsDiGjhoFH1pec8FUyGggCFd3P9rQ9uWcP8xfB1CEGwwHZCP/75dL3yt4AQ2xwt3YeSwa3eW/dmMQoG9gSE8yPfnipZ9LSZlUM+XPuOOHMn097Q5KsDe9eUBdr+2nDPkC5wIDAQABo1AwTjAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMB0GA1UdDgQWBBRxyRM5vwCoHzaybtxNVaTyno3UBjANBgkqhkiG9w0BAQUFAAOCAQEAHunjfmqvhS1gpPW2KgYOdBVrtrZdgzTUp5PoSCa6TsA+BifByOf5RgYj4b4BzvOHjbud4niTYPjTYXCJZLwGAO+z+PxjujHARUlIWpHDj95j4CR9OBoRNEqjCq15WcXPJ7FqKQzpYnBpWPIy/CCitWVSMB5AXWoJa6zLh2ItkhM9v2vroLZYnYqe8BGVMfr5UvNfDv6uGQOXxGsyCjZqkjkphbDa2Vtr/ZLYl9qPinM1vBLNXpiawC6oiXjMI7q4FhtUkzEJFgRHCV1TICtjgebqd6jGQlykvxAtikioRmpG7HdfwdPt5LJriSX7qqCiNIfLYGxC327LVTHrJrw+OA=="
+          }
+    }
+  }

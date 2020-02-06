@@ -1,0 +1,40 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "StorageAccountName": {
+         "type": "string",
+         "metadata": {
+              "description": "Prefix of storage account name"
+          },
+          "maxLength": 7
+      },
+      "DepartmentTag": {
+         "type": "string",
+         "metadata": {
+              "description": "Name of department that owns the storage account"
+          },
+          "allowedValues": [
+            "Engineering",
+            "HumanResources",
+            "IT"
+          ]
+      }
+    },
+    "variables": {},
+    "resources": [
+      {
+          "name": "[concat(parameters('StorageAccountName'),uniqueString(resourceGroup().id))]",
+          "type": "Microsoft.Storage/storageAccounts",
+          "apiVersion": "2015-06-15",
+          "location": "[resourceGroup().location]",
+          "tags": {
+              "Department": "[parameters('DepartmentTag')]"
+          },
+          "properties": {
+              "accountType": "Standard_LRS"
+          }
+      }
+    ],
+    "outputs": {}
+}

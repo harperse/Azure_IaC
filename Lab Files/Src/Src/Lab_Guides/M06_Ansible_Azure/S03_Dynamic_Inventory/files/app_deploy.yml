@@ -1,0 +1,81 @@
+- hosts: voting-app-tier_web
+  gather_facts: no
+  become: yes
+  vars:
+    identifier: "95851"
+    # redis_server: azvote-cache-95851.redis.cache.windows.net
+    redis_key: fXrOmPsK1T1j3wbciXShC+NqTsx5g5K0QZ82I2zxVoE=
+
+  environment:
+    REDIS: "azvote-cache-{{ identifier }}.redis.cache.windows.net"
+    REDIS_PWD: "{{ redis_key }}"
+  
+  tasks:
+  - name: Install required packages
+    apt:
+      update_cache: yes
+      name:
+      - python
+      - python-pip
+      - python-virtualenv
+      - nginx
+      - gunicorn
+      - git
+      - supervisor
+
+  - name: Install pip packages
+    pip:
+      name:
+      - Flask
+      - redis
+
+  - name: Download source code
+    git:
+      repo: 'https://github.com/Azure-Samples/azure-voting-app-redis.git'
+      dest: /srv/www
+
+  - name: remove default nginx site
+    file:
+      path: /etc/nginx/sites-enabled/default
+      state: absent
+
+  - name: create azure-vote file
+    file:
+      path: /etc/nginx/sites-available/azure-vote
+      state: touch
+  
+  - name: link file
+    file:
+      src: /etc/nginx/sites-available/azure-vote
+      dest: /etc/nginx/sites-enabled/azure-vote
+      force: yes
+      state: link
+
+  - name: write content
+    copy:
+      dest: /etc/nginx/sites-enabled/azure-vote
+      content: |
+        server {
+            location / {
+                proxy_pass http://localhost:8000;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+            } 
+        }
+  
+  - name: restart nginx
+    service:
+      name: nginx
+      state: restarted
+      enabled: yes
+
+  - name: start flask app
+    shell: gunicorn main:app -b localhost:8000 -D 
+    args:
+      chdir: /srv/www/azure-vote/azure-vote
+  
+  - debug:
+      var: identifier
+
+  - debug:
+      msg: "Website URL (change location if necessary): http://azvote1-{{ identifier }}.eastus2.cloudapp.azure.com"

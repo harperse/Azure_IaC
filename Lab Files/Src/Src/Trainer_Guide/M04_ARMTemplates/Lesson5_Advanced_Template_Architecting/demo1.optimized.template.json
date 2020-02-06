@@ -1,0 +1,53 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vnetObject": {
+            "type": "object"
+        },
+        "environment": {
+            "type": "string",
+            "allowedValues": [
+                "dev",
+                "qa",
+                "prod"
+            ]
+        },
+        "projectName": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "baselineName": "[concat(parameters('projectName'), '-', parameters('environment'))]",
+        "vnetName": "[concat('VNet-', variables('baselineName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2018-08-01",
+            "name": "[variables('vnetName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('vnetObject').vnetCidr]"
+                    ]
+                },
+                "dhcpOptions": {
+                    "dnsServers": "[parameters('vnetObject').dnsServers]"
+                },
+                "copy": {
+                    "name": "subnets",
+                    "count": "[length(parameters('vnetObject').subnets)]",
+                    "input": {
+                        "name": "[parameters('vnetObject').subnets[copyIndex('subnets')].subnetName]",
+                        "properties": {
+                            "addressPrefix": "[parameters('vnetObject').subnets[copyIndex('subnets')].subnetCidr]"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

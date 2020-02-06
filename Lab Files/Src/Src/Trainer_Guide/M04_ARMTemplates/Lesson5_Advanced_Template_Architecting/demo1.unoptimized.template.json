@@ -1,0 +1,67 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vnetName": {
+            "type": "string"
+        },
+        "vnetCidr": {
+            "type": "string"
+        },
+        "dnsServer1": {
+            "type": "string"
+        },
+        "dnsServer2": {
+            "type": "string"
+        },
+        "subnetName1": {
+            "type": "string"
+        },
+        "subnetCidr1": {
+            "type": "string"
+        },
+        "subnetName2": {
+            "type": "string"
+        },
+        "subnetCidr2": {
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2018-08-01",
+            "name": "[parameters('vnetName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('vnetCidr')]"
+                    ]
+                },
+                "dhcpOptions": {
+                    "dnsServers": [
+                        "[parameters('dnsServer1')]",
+                        "[parameters('dnsServer2')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('subnetName1')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnetCidr1')]" 
+                        }
+                    },
+                    {
+                        "name": "[parameters('subnetName2')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnetCidr2')]" 
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}

@@ -1,0 +1,95 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "StorageAccountName": {
+         "type": "string",
+         "metadata": {
+              "description": "Prefix of storage account name"
+          },
+          "defaultValue": "[concat('Storage',uniqueString(resourceGroup().id))]"
+      },
+      "DepartmentTag": {
+         "type": "string",
+         "metadata": {
+              "description": "Name of department that owns the storage account"
+          },
+          "defaultValue": "Engineering",
+          "allowedValues": [
+            "Engineering",
+            "HumanResources",
+            "IT"
+          ]
+      }
+    },
+    "variables": {
+        "StorageAccountName": "[toLower(parameters('StorageAccountName'))]"
+    },
+    "resources": [
+      {
+          "name": "[variables('StorageAccountName')]",
+          "type": "Microsoft.Storage/storageAccounts",
+          "apiVersion": "2015-06-15",
+          "location": "[resourceGroup().location]",
+          "tags": {
+              "Department": "[parameters('DepartmentTag')]"
+          },
+          "properties": {
+              "accountType": "Standard_LRS"
+          }
+      },
+      {
+          "name": "[concat(variables('StorageAccountName'),'vnet')]",
+          "type": "Microsoft.Network/virtualNetworks",
+          "apiVersion": "2018-08-01",
+          "location": "[resourceGroup().location]",
+          "tags": {
+              "displayName": "virtualNetwork1"
+          },
+          "properties": {
+              "addressSpace": {
+                  "addressPrefixes": [
+                      "10.0.0.0/16"
+                  ]
+              },
+              "subnets": [
+                  {
+                      "name": "Subnet-1",
+                      "properties": {
+                          "addressPrefix": "10.0.0.0/24"
+                      }
+                  },
+                  {
+                      "name": "Subnet-2",
+                      "properties": {
+                          "addressPrefix": "10.0.1.0/24"
+                      }
+                  }
+              ]
+          }
+      },
+      {
+          "name": "networkInterface1",
+          "type": "Microsoft.Network/networkInterfaces",
+          "apiVersion": "2018-08-01",
+          "location": "[resourceGroup().location]",
+          "tags": {
+              "displayName": "networkInterface1"
+          },
+          "properties": {
+              "ipConfigurations": [
+                  {
+                      "name": "ipConfig1",
+                      "properties": {
+                          "privateIPAllocationMethod": "Dynamic",
+                          "subnet": {
+                              "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', concat(variables('StorageAccountName'),'vnet'), 'Subnet-1')]"
+                          }
+                      }
+                  }
+              ]
+          }
+      }
+    ],
+    "outputs": {}
+}

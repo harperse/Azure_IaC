@@ -1,0 +1,123 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "variables": {},
+    "resources": [
+{
+    "name": "nic1",
+    "type": "Microsoft.Network/networkInterfaces",
+    "apiVersion": "2018-08-01",
+    "location": "[resourceGroup().location]",
+    "dependsOn": [
+        "vnet1"
+    ],
+    "properties": {
+        "ipConfigurations": [
+        {
+        "name": "ipConfig1",
+        "properties": {
+            "privateIPAllocationMethod": "Dynamic",
+            "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'vnet1', 'subnet1')]"}}}]}},
+{
+    "name": "vnet1",
+    "type": "Microsoft.Network/virtualNetworks",
+    "apiVersion": "2018-08-01",
+    "location": "[resourceGroup().location]",
+    "dependsOn": [
+        "ddosprotectionplan",
+        "nic1"
+    ],
+    "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "Subnet1",
+                        "properties": {
+                            "addressPrefix": "10.0.0.0/24",
+                            "ServiceEndpoints": [{
+								"Service": "Microsoft.Storage"
+							},
+							{
+								"Service": "Microsoft.Sql"
+							}
+						    ]
+                        }
+                    },
+                    {
+                        "name": "Subnet2",
+                        "properties": {
+                            "addressPrefix": "10.0.1.0/24",
+                            "ServiceEndpoints": [{
+								"Service": "Microsoft.Storage"
+							},
+							{
+								"Service": "Microsoft.Sql"
+							}
+						    ]
+                        }
+                    },
+                    {
+                        "name": "Subnet3",
+                        "properties": {
+                            "addressPrefix": "10.0.2.0/24",
+                            "ServiceEndpoints": [{
+								"Service": "Microsoft.Storage"
+							},
+							{
+								"Service": "Microsoft.Sql"
+							}
+						    ]
+                        }
+                    },
+                    {
+                        "name": "Subnet4",
+                        "properties": {
+                            "addressPrefix": "10.0.3.0/24",
+                            "ServiceEndpoints": [{
+								"Service": "Microsoft.Storage"
+							},
+							{
+								"Service": "Microsoft.Sql"
+							}
+						    ]
+                        }
+                    },
+                    {
+                        "name": "Subnet5",
+                        "properties": {
+                            "addressPrefix": "10.0.4.0/24",
+                            "ServiceEndpoints": [{
+								"Service": "Microsoft.Storage"
+							},
+							{
+								"Service": "Microsoft.Sql"
+							}
+						    ]
+                        }
+                    }
+                ],
+                "dhcpOptions":{
+                    "dnsServers":[
+                        "1.1.1.1",
+                        "2.2.2.2"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "ddosprotectionplan",
+            "type": "Microsoft.Network/ddosProtectionPlans",
+            "apiVersion": "2018-08-01",
+            "location": "[resourceGroup().location]",
+            "tags": {},
+            "properties": {}
+          }
+    ],
+    "outputs": {}
+}

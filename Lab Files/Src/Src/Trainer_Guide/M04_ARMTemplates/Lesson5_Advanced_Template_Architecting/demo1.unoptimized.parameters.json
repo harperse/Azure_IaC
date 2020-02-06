@@ -1,0 +1,30 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vnetName": {
+            "value": "myTestVnet"
+        },
+        "vnetCidr": {
+            "value": "10.0.0.0/16"
+        },
+        "dnsServer1": {
+            "value": "10.0.0.4"
+        },
+        "dnsServer2": {
+            "value": "10.0.0.5"
+        },
+        "subnetName1": {
+            "value": "App"
+        },
+        "subnetCidr1": {
+            "value": "10.0.0.0/24"
+        },
+        "subnetName2": {
+            "value": "Web"
+        },
+        "subnetCidr2": {
+            "value": "10.0.0.0/24"
+        }
+    }
+}

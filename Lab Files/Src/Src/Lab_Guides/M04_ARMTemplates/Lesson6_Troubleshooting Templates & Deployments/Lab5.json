@@ -1,0 +1,70 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {},
+	"resources": [{
+			"apiVersion": "2016-09-01",
+			"name": "Lab5AppSvcPlan",
+			"type": "Microsoft.Web/serverfarms",
+			"location": "[resourceGroup().location]",
+			"properties": {
+				"name": "Lab5AppSvcPlan"
+			},
+			"sku": {
+				"Tier": "Standard",
+                "Name": "S2",
+                "size": "S2",
+                "family": "S",
+                "capacity": 1
+			}
+		},
+		{
+			"name": "[uniqueString(resourceGroup().id)]",
+			"type": "Microsoft.Web/sites",
+			"apiVersion": "2016-08-01",
+			"location": "[resourceGroup().location]",
+			"dependsOn": [
+				"[resourceId('Microsoft.Web/serverfarms', 'Lab5AppSvcPlan')]"
+			],
+			"properties": {
+				"name": "[uniqueString(resourceGroup().id)]",
+				"serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'Lab5AppSvcPlan')]"
+			},
+			"resources": [{
+				"apiVersion": "2016-08-01",
+				"name": "web",
+				"type": "Microsoft.Web/sites/config",
+				"dependsOn": [
+					"[concat('Microsoft.Web/sites/', uniqueString(resourceGroup().id))]"
+				],
+				"properties": {
+					"foo": "bar"
+				}
+			}]
+		},
+		{
+			"name": "Lab5vNet1",
+			"type": "Microsoft.Network/virtualNetworks",
+			"apiVersion": "2018-08-01",
+			"location": "[resourceGroup().location]",
+			"properties": {
+				"addressSpace": {
+					"addressPrefixes": [
+						"10.0.0.0/16"
+					]
+				}
+			}
+        },
+        {
+            "name": "subnet1",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2018-08-01",
+            "dependsOn": [
+                "Lab5vNet1" 
+            ],
+            "properties": {
+              "addressPrefix": "10.0.1.0/24"
+            }
+          }
+	]
+}

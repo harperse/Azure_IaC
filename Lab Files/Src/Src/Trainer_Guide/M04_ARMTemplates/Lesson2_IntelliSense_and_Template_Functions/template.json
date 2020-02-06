@@ -1,0 +1,33 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "projectName": {
+           "type": "string",
+           "metadata": {
+                "description": "Project Name"
+            }
+        }
+    },
+    "variables": {
+        "publicIPName": "[concat(parameters('projectName'), '-PublicIP')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2018-08-01",
+            "name": "[variables('publicIPName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "[variables('publicIPName')]"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "dnsSettings": {
+                    "domainNameLabel": "[toLower(concat(parameters('projectName'), uniqueString(subscription().subscriptionId)))]"
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

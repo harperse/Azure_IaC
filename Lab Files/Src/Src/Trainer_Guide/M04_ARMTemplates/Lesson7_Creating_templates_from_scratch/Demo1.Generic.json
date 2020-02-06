@@ -1,0 +1,95 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "Environment": {
+           "type": "string",
+           "metadata": {
+                "description": ""
+            }
+        },
+        "Cloud": {
+           "type": "string",
+           "metadata": {
+                "description": "Cloud Environment"
+            }
+        },
+        "vNet": {
+           "type": "object",
+           "metadata": {
+                "description": ""
+            }
+        }
+    },
+    "variables": {
+        "EnvironmentContext": "[concat(parameters('Cloud'),'-',parameters('Environment'),'-',resourceGroup().location)]"
+    },
+    "resources": [
+        {
+        "apiVersion": "2017-11-01",
+        "type": "Microsoft.Network/virtualNetworks",
+        "name": "[concat(variables('EnvironmentContext'),'-vnet')]",
+        "location": "[resourceGroup().location]",
+        "tags": {
+            "displayName": "[concat(variables('EnvironmentContext'),'-vnet')]",
+            "Location": "[resourceGroup().location]"
+        },
+        "properties": {
+            "dhcpOptions":{
+                "dnsServers":
+                    "[parameters('vNet').dhcpoptions.dnsservers]"
+            },
+            "enableDdosProtection": "[parameters('vNet').enableDdosProtection]",
+            "addressSpace": {
+                "addressPrefixes": 
+                    "[parameters('vNet').addressSpace.addressPrefixes]"
+                
+            },
+            "copy": [
+                {
+                    "name": "subnets",
+                    "count": "[length(parameters('vNet').subnets)]",
+                    "input": {
+                        "name": "[parameters('vNet').subnets[copyIndex('subnets')].name]",
+                        "properties": {
+                            "addressPrefix": "[parameters('vNet').subnets[copyIndex('subnets')].addressPrefix]",
+                            "serviceEndpoints": "[parameters('vNet').subnets[copyIndex('subnets')].serviceEndpoints]"                    
+                        }
+                    }
+                }
+            ],
+
+            "virtualNetworkPeerings":[
+                
+            ]
+        },
+        
+        "resources": [
+        ]
+    },
+    {
+        "name": "[concat(variables('EnvironmentContext'),'-management-asg')]",
+        "type": "Microsoft.Network/applicationSecurityGroups",
+        "apiVersion": "2017-10-01",
+        "location": "[resourceGroup().location]",
+        "tags": {},
+        "properties": {}
+      },
+      {
+        "name": "[concat(variables('EnvironmentContext'),'-quarantine-asg')]",
+        "type": "Microsoft.Network/applicationSecurityGroups",
+        "apiVersion": "2017-10-01",
+        "location": "[resourceGroup().location]",
+        "tags": {},
+        "properties": {}
+      }
+
+
+],
+    "outputs": {
+        "ReferenceVNet": {
+            "type": "object",
+            "value": "[reference(concat(variables('EnvironmentContext'),'-vnet'),'2017-11-01','Full')]"
+        }
+    }
+}

@@ -1,0 +1,29 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "PIPCount": {
+           "type": "int"
+        }
+    },
+    "variables": {},
+    "resources": [
+            {
+                "name": "[concat('pip',copyIndex())]",
+                "type": "Microsoft.Network/publicIPAddresses",
+                "apiVersion": "2018-08-01",
+                "location": "[resourceGroup().location]",
+                "copy": {
+                    "name": "pip",
+                    "count": "[parameters('PIPCount')]"
+                },
+                "properties": {
+                    "publicIPAllocationMethod": "Dynamic",
+                    "dnsSettings": {
+                        "domainNameLabel": "[concat('contoso',copyIndex())]"
+                    }
+                }
+            }
+    ],
+    "outputs": {}
+}

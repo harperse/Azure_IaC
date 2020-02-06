@@ -1,0 +1,27 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"Department": {
+			"type": "string"
+		},
+		"VnetAddressPrefix": {
+			"type": "string"
+		}
+	},
+	"variables": {
+		"VnetName": "[concat(parameters('Department'),'-vnet')]"
+	},
+	"resources": [{
+		"apiVersion": "2018-10-01",
+		"type": "Microsoft.Network/virtualNetworks",
+		"name": "[variables('VnetName')]",
+		"location": "[resourceGroup().location]",
+		"properties": {
+			"addressSpace": {
+				"addressPrefixes": ["[parameters('VnetAddressPrefix')]"]
+			}
+		}
+	}],
+	"outputs": {}
+}

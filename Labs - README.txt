@@ -1,0 +1,1 @@
+The lab documents should be consumed in the LOD platform. Please go to mslearningcampus.com to access the self-study environment for this workshop.

@@ -1,0 +1,43 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+    },
+    "resources": [
+        {
+            "apiVersion": "2016-09-01",
+            "name": "AppSvcPlan",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "name": "AppSvcPlan"
+            },
+            "sku": {
+                "Tier": "Free",
+                "Name": "F1"
+            }
+        },
+        {
+            "name": "[uniqueString(resourceGroup().id)]",
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2016-08-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', 'AppSvcPlan')]"
+            ],
+            "properties": {
+                "name": "[uniqueString(resourceGroup().id)]",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'AppSvcPlan')]"
+            },
+            "resources": [
+                {
+                    "apiVersion": "2016-08-01",
+                    "name": "web",
+                    "type": "Microsoft.Web/sites/config",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', uniqueString(resourceGroup().id))]"
+                    ],
+                    "properties": {
+                        "foo": "bar"}}]}
+    ]
+}
